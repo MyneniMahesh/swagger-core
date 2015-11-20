@@ -1,5 +1,7 @@
 package io.swagger.jersey;
 
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.*;
@@ -8,14 +10,13 @@ import javax.ws.rs.BeanParam;
 
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.BeanDescription;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.introspect.AnnotatedField;
 import com.fasterxml.jackson.databind.introspect.AnnotatedMethod;
 import com.fasterxml.jackson.databind.introspect.BeanPropertyDefinition;
-
 
 import io.swagger.converter.ModelConverters;
 import io.swagger.jaxrs.ext.AbstractSwaggerExtension;
@@ -32,9 +33,9 @@ import io.swagger.util.ParameterProcessor;
 public class SwaggerJersey2Jaxrs extends AbstractSwaggerExtension {
     private static final ObjectMapper mapper = new ObjectMapper();
     static {
-      mapper.setVisibility(PropertyAccessor.ALL, Visibility.NONE);
-      mapper.setVisibility(PropertyAccessor.FIELD, Visibility.ANY);
-      mapper.setVisibility(PropertyAccessor.SETTER, Visibility.ANY);
+      mapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE);
+      mapper.setVisibility(PropertyAccessor.FIELD, ANY);
+      mapper.setVisibility(PropertyAccessor.SETTER, ANY);
     }
 
     @Override
