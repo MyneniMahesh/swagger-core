@@ -1,6 +1,7 @@
 package io.swagger.jersey;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
@@ -33,7 +34,7 @@ import io.swagger.util.ParameterProcessor;
 public class SwaggerJersey2Jaxrs extends AbstractSwaggerExtension {
     private static final ObjectMapper mapper = new ObjectMapper();
     static {
-      mapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE);
+      mapper.setVisibility(PropertyAccessor.ALL, NONE);
       mapper.setVisibility(PropertyAccessor.FIELD, ANY);
       mapper.setVisibility(PropertyAccessor.SETTER, ANY);
     }

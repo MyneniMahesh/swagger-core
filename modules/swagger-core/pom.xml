@@ -107,7 +107,7 @@
             <version>${jackson-version}</version>
         </dependency>
         <dependency>
-            <groupId>io.swagger</groupId>
+            <groupId>com.castlight</groupId>
             <artifactId>swagger-models</artifactId>
             <version>${project.parent.version}</version>
         </dependency>

@@ -29,7 +29,7 @@
             <url>https://artifactory.castlighthealth.com/artifactory/libs-release-local</url>
        </repository>
        <snapshotRepository>
-           <id>den-prod-artifactory01</id>
+           <id>snapshots</id>
            <name>den-prod-artifactory01-snapshots</name>
            <url>https://artifactory.castlighthealth.com/artifactory/libs-snapshot-local</url>
        </snapshotRepository>
