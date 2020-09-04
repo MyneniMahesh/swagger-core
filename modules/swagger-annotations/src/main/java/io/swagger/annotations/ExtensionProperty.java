@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 SmartBear Software
+ * Copyright 2016 SmartBear Software
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,4 +44,12 @@ public @interface ExtensionProperty {
      * @return the value of the property
      */
     String value();
+
+    /**
+     * If set to true, field `value` will be parsed and serialized as JSON/YAML
+     *
+     * @return the value of `parseValue` annotation field
+     */
+    boolean parseValue() default false;
 }
+

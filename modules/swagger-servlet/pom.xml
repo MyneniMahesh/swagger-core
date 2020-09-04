@@ -4,11 +4,12 @@
     <parent>
         <groupId>com.castlight</groupId>
         <artifactId>swagger-project</artifactId>
-        <version>1.5.5</version>
+        <version>1.6.2</version>
         <relativePath>../..</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>swagger-servlet</artifactId>
+    <version>1.6.2</version>
     <packaging>jar</packaging>
     <name>swagger-servlet</name>
     <build>
@@ -49,13 +50,11 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>${logback-version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-core</artifactId>
-            <version>${logback-version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

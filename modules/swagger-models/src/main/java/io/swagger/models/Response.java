@@ -3,22 +3,18 @@ package io.swagger.models;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import io.swagger.models.properties.Property;
+import io.swagger.models.utils.PropertyModelConverter;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class Response {
     private String description;
-    private Property schema;
+    private Model schemaAsModel;
+    private Property schemaAsProperty;
     private Map<String, Object> examples;
     private Map<String, Property> headers;
-    private final Map<String, Object> vendorExtensions = new HashMap<String, Object>();
-
-    public Response schema(Property property) {
-        this.setSchema(property);
-        return this;
-    }
+    private Map<String, Object> vendorExtensions = new LinkedHashMap<String, Object>();
 
     public Response description(String description) {
         this.setDescription(description);
@@ -27,7 +23,7 @@ public class Response {
 
     public Response example(String type, Object example) {
         if (examples == null) {
-            examples = new HashMap<String, Object>();
+            examples = new LinkedHashMap<String, Object>();
         }
         examples.put(type, example);
         return this;
@@ -56,12 +52,39 @@ public class Response {
         this.description = description;
     }
 
+    @Deprecated
     public Property getSchema() {
-        return schema;
+        if (schemaAsProperty == null && schemaAsModel != null) {
+            return new PropertyModelConverter().modelToProperty(schemaAsModel);
+        }
+        return schemaAsProperty;
     }
 
+    @Deprecated
     public void setSchema(Property schema) {
-        this.schema = schema;
+        this.schemaAsProperty = schema;
+    }
+
+    @Deprecated
+    public Response schema(Property property) {
+        this.setSchema(property);
+        return this;
+    }
+
+    public Model getResponseSchema() {
+        if(schemaAsModel == null && schemaAsProperty != null) {
+            return new PropertyModelConverter().propertyToModel(schemaAsProperty);
+        }
+        return schemaAsModel;
+    }
+
+    public void setResponseSchema(Model model) {
+        this.schemaAsModel = model;
+    }
+
+    public Response responseSchema(Model model) {
+        this.setResponseSchema(model);
+        return this;
     }
 
     public Map<String, Object> getExamples() {
@@ -99,67 +122,48 @@ public class Response {
         }
     }
 
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result
-                + ((description == null) ? 0 : description.hashCode());
-        result = prime * result + ((examples == null) ? 0 : examples.hashCode());
-        result = prime * result + ((headers == null) ? 0 : headers.hashCode());
-        result = prime * result + ((schema == null) ? 0 : schema.hashCode());
-        result = prime * result
-                + ((vendorExtensions == null) ? 0 : vendorExtensions.hashCode());
-        return result;
+    public void setVendorExtensions(Map<String, Object> vendorExtensions) {
+        this.vendorExtensions = vendorExtensions;
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
+    public boolean equals(Object o) {
+        if (this == o) {
             return true;
         }
-        if (obj == null) {
+        if (!(o instanceof Response)) {
             return false;
         }
-        if (getClass() != obj.getClass()) {
+
+        Response response = (Response) o;
+
+        if (description != null ? !description.equals(response.description) : response.description != null) {
             return false;
         }
-        Response other = (Response) obj;
-        if (description == null) {
-            if (other.description != null) {
-                return false;
-            }
-        } else if (!description.equals(other.description)) {
+        if (schemaAsModel != null ? !schemaAsModel.equals(response.schemaAsModel) : response.schemaAsModel != null) {
             return false;
         }
-        if (examples == null) {
-            if (other.examples != null) {
-                return false;
-            }
-        } else if (!examples.equals(other.examples)) {
+        if (schemaAsProperty != null ? !schemaAsProperty.equals(response.schemaAsProperty) : response.schemaAsProperty != null) {
             return false;
         }
-        if (headers == null) {
-            if (other.headers != null) {
-                return false;
-            }
-        } else if (!headers.equals(other.headers)) {
+        if (examples != null ? !examples.equals(response.examples) : response.examples != null) {
             return false;
         }
-        if (schema == null) {
-            if (other.schema != null) {
-                return false;
-            }
-        } else if (!schema.equals(other.schema)) {
+        if (headers != null ? !headers.equals(response.headers) : response.headers != null) {
             return false;
         }
-        if (vendorExtensions == null) {
-            if (other.vendorExtensions != null) {
-                return false;
-            }
-        } else if (!vendorExtensions.equals(other.vendorExtensions)) {
-            return false;
-        }
-        return true;
+        return vendorExtensions != null ? vendorExtensions.equals(response.vendorExtensions) : response.vendorExtensions == null;
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = description != null ? description.hashCode() : 0;
+        result = 31 * result + (schemaAsModel != null ? schemaAsModel.hashCode() : 0);
+        result = 31 * result + (schemaAsProperty != null ? schemaAsProperty.hashCode() : 0);
+        result = 31 * result + (examples != null ? examples.hashCode() : 0);
+        result = 31 * result + (headers != null ? headers.hashCode() : 0);
+        result = 31 * result + (vendorExtensions != null ? vendorExtensions.hashCode() : 0);
+        return result;
     }
 }

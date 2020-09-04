@@ -4,7 +4,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.models.Employee;
 
-import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 
 @Api("/employees")
@@ -14,7 +13,7 @@ public class ResourceWithSubResources {
             response = Employee.class,
             responseContainer = "list",
             tags = "Employees")
-    @GET
+    @Path("{id}")
     public SubResource getTest() {
         return new SubResource();
     }

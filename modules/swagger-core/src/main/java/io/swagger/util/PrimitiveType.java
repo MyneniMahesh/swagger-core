@@ -1,19 +1,7 @@
 package io.swagger.util;
 
 import com.fasterxml.jackson.databind.type.TypeFactory;
-import io.swagger.models.properties.BaseIntegerProperty;
-import io.swagger.models.properties.BooleanProperty;
-import io.swagger.models.properties.DateProperty;
-import io.swagger.models.properties.DateTimeProperty;
-import io.swagger.models.properties.DecimalProperty;
-import io.swagger.models.properties.DoubleProperty;
-import io.swagger.models.properties.FloatProperty;
-import io.swagger.models.properties.IntegerProperty;
-import io.swagger.models.properties.LongProperty;
-import io.swagger.models.properties.ObjectProperty;
-import io.swagger.models.properties.Property;
-import io.swagger.models.properties.StringProperty;
-import io.swagger.models.properties.UUIDProperty;
+import io.swagger.models.properties.*;
 
 import java.lang.reflect.Type;
 import java.util.Collections;
@@ -49,8 +37,17 @@ public enum PrimitiveType {
      */
     BYTE(Byte.class, "byte") {
         @Override
-        public StringProperty createProperty() {
-            return new StringProperty(StringProperty.Format.BYTE);
+        public ByteArrayProperty createProperty() {
+            return new ByteArrayProperty();
+        }
+    },
+    /**
+     * Binary
+     */
+    BINARY(Byte.class, "binary") {
+        @Override
+        public BinaryProperty createProperty() {
+            return new BinaryProperty();
         }
     },
     /**
@@ -128,7 +125,7 @@ public enum PrimitiveType {
     /**
      * Generic decimal number without specific format.
      */
-    DECIMAL(java.math.BigDecimal.class) {
+    DECIMAL(java.math.BigDecimal.class, "number") {
         @Override
         public DecimalProperty createProperty() {
             return new DecimalProperty();
@@ -150,6 +147,15 @@ public enum PrimitiveType {
         @Override
         public DateTimeProperty createProperty() {
             return new DateTimeProperty();
+        }
+    },
+    /**
+     * Native Java file.
+     */
+    FILE(java.io.File.class, "file") {
+        @Override
+        public FileProperty createProperty() {
+            return new FileProperty();
         }
     },
     /**
@@ -193,6 +199,7 @@ public enum PrimitiveType {
         addKeys(keyClasses, DECIMAL, java.math.BigDecimal.class);
         addKeys(keyClasses, DATE, DateStub.class);
         addKeys(keyClasses, DATE_TIME, java.util.Date.class);
+        addKeys(keyClasses, FILE, java.io.File.class);
         addKeys(keyClasses, OBJECT, Object.class);
         KEY_CLASSES = Collections.unmodifiableMap(keyClasses);
 
@@ -203,7 +210,9 @@ public enum PrimitiveType {
         final Map<String, PrimitiveType> externalClasses = new HashMap<String, PrimitiveType>();
         addKeys(externalClasses, DATE, "org.joda.time.LocalDate", "java.time.LocalDate");
         addKeys(externalClasses, DATE_TIME, "org.joda.time.DateTime", "org.joda.time.ReadableDateTime",
-                "javax.xml.datatype.XMLGregorianCalendar", "java.time.LocalDateTime");
+                "javax.xml.datatype.XMLGregorianCalendar", "java.time.LocalDateTime", "java.time.ZonedDateTime",
+                "java.time.OffsetDateTime");
+        addKeys(externalClasses, LONG, "java.time.Instant");                
         EXTERNAL_CLASSES = Collections.unmodifiableMap(externalClasses);
 
         final Map<String, PrimitiveType> names = new TreeMap<String, PrimitiveType>(String.CASE_INSENSITIVE_ORDER);
@@ -246,7 +255,14 @@ public enum PrimitiveType {
     }
 
     public static PrimitiveType fromName(String name) {
-        return name == null ? null : NAMES.get(name);
+        if(name == null) {
+            return null;
+        }
+        PrimitiveType fromName = NAMES.get(name);
+        if(fromName == null) {
+            fromName = EXTERNAL_CLASSES.get(name);
+        }
+        return fromName;
     }
 
     public static Property createProperty(Type type) {

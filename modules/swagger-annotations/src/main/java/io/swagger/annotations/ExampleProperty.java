@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 SmartBear Software
+ * Copyright 2016 SmartBear Software
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ public @interface ExampleProperty {
      *
      * @return the name of the property
      */
-    String mediaType() default "default";
+    String mediaType() default "";
 
     /**
      * The value of the example.

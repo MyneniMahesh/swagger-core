@@ -29,6 +29,14 @@ public abstract class AbstractSpecFilter implements SwaggerSpecFilter {
         return true;
     }
 
+    public boolean isDefinitionAllowed(
+            Model model,
+            Map<String, List<String>> params,
+            Map<String, String> cookies,
+            Map<String, List<String>> headers) {
+        return true;
+    }
+
     public boolean isPropertyAllowed(
             Model model,
             Property property,
@@ -37,5 +45,9 @@ public abstract class AbstractSpecFilter implements SwaggerSpecFilter {
             Map<String, String> cookies,
             Map<String, List<String>> headers) {
         return true;
+    }
+
+    public boolean isRemovingUnreferencedDefinitions() {
+        return false;
     }
 }

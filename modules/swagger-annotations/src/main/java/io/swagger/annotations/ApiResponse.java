@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 SmartBear Software
+ * Copyright 2016 SmartBear Software
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,10 @@ import java.lang.annotation.Target;
  * You may or may not use this to describe the return type of the operation (normally a
  * successful code), but the successful response should be described as well using the
  * {@link ApiOperation}.
+ * <p>
+ * This annotation can be applied at method or class level; class level annotations will
+ * be parsed only if an @ApiResponse annotation with the same code is not defined at method
+ * level or in thrown Exception
  * <p>
  * If your API has uses a different response class for these responses, you can describe them
  * here by associating a response class with a response code.
@@ -81,4 +85,13 @@ public @interface ApiResponse {
      * Valid values are "List", "Set" or "Map". Any other value will be ignored.
      */
     String responseContainer() default "";
+
+    /**
+     * Examples for the response.
+     *
+     * @since 1.5.20
+     *
+     * @return
+     */
+    Example examples() default @Example(value = @ExampleProperty(value = "", mediaType = ""));
 }

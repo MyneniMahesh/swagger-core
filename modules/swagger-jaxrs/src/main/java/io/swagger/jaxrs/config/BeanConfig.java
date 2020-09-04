@@ -1,18 +1,12 @@
 package io.swagger.jaxrs.config;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.SwaggerDefinition;
-import io.swagger.config.FilterFactory;
-import io.swagger.config.Scanner;
-import io.swagger.config.ScannerFactory;
-import io.swagger.config.SwaggerConfig;
-import io.swagger.core.filter.SwaggerSpecFilter;
-import io.swagger.jaxrs.Reader;
-import io.swagger.models.Contact;
-import io.swagger.models.Info;
-import io.swagger.models.License;
-import io.swagger.models.Scheme;
-import io.swagger.models.Swagger;
+import java.lang.annotation.Annotation;
+import java.util.HashSet;
+import java.util.Set;
+
+import javax.servlet.ServletConfig;
+import javax.ws.rs.Path;
+
 import org.apache.commons.lang3.StringUtils;
 import org.reflections.Reflections;
 import org.reflections.scanners.ResourcesScanner;
@@ -23,13 +17,27 @@ import org.reflections.util.ConfigurationBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
-import java.util.Set;
+import com.google.common.reflect.TypeToken;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.SwaggerDefinition;
+import io.swagger.config.FilterFactory;
+import io.swagger.config.Scanner;
+import io.swagger.config.SwaggerConfig;
+import io.swagger.core.filter.SwaggerSpecFilter;
+import io.swagger.jaxrs.Reader;
+import io.swagger.models.Contact;
+import io.swagger.models.Info;
+import io.swagger.models.License;
+import io.swagger.models.Scheme;
+import io.swagger.models.Swagger;
 
 public class BeanConfig extends AbstractScanner implements Scanner, SwaggerConfig {
-    Logger LOGGER = LoggerFactory.getLogger(BeanConfig.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(BeanConfig.class);
 
-    Reader reader = new Reader(new Swagger());
+    protected Reader reader = new Reader(new Swagger());
+
+    protected ServletConfig servletConfig;
 
     String resourcePackage;
     String[] schemes;
@@ -45,6 +53,22 @@ public class BeanConfig extends AbstractScanner implements Scanner, SwaggerConfi
     Info info;
     String host;
     String basePath;
+
+    String scannerId;
+    String configId;
+    String contextId;
+
+    boolean expandSuperTypes = true;
+
+    private boolean usePathBasedConfig = false;
+
+    public boolean isUsePathBasedConfig() {
+        return usePathBasedConfig;
+    }
+
+    public void setUsePathBasedConfig(boolean usePathBasedConfig) {
+        this.usePathBasedConfig = usePathBasedConfig;
+    }
 
     public String getResourcePackage() {
         return this.resourcePackage;
@@ -134,6 +158,7 @@ public class BeanConfig extends AbstractScanner implements Scanner, SwaggerConfi
         this.host = host;
     }
 
+    @Override
     public String getFilterClass() {
         return filterClass;
     }
@@ -142,8 +167,44 @@ public class BeanConfig extends AbstractScanner implements Scanner, SwaggerConfi
         this.filterClass = filterClass;
     }
 
+    public String getContextId() {
+        return contextId;
+    }
+
+    public void setContextId(String contextId) {
+        this.contextId = contextId;
+    }
+
+    public String getScannerId() {
+        return scannerId;
+    }
+
+    public void setScannerId(String scannerId) {
+        this.scannerId = scannerId;
+    }
+
+    public String getConfigId() {
+        return configId;
+    }
+
+    public void setServletConfig(ServletConfig servletConfig) {
+        this.servletConfig = servletConfig;
+    }
+
+    public void setConfigId(String configId) {
+        this.configId = configId;
+    }
+
     public String getBasePath() {
         return basePath;
+    }
+
+    public boolean getExpandSuperTypes() {
+        return expandSuperTypes;
+    }
+
+    public void setExpandSuperTypes(boolean expandSuperTypes) {
+        this.expandSuperTypes = expandSuperTypes;
     }
 
     public void setBasePath(String basePath) {
@@ -167,6 +228,25 @@ public class BeanConfig extends AbstractScanner implements Scanner, SwaggerConfi
     }
 
     public void setScan(boolean shouldScan) {
+        scanAndRead();
+        new SwaggerContextService()
+                .withConfigId(configId)
+                .withScannerId(scannerId)
+                .withContextId(contextId)
+                .withServletConfig(servletConfig)
+                .withSwaggerConfig(this)
+                .withScanner(this)
+                .withBasePath(getBasePath())
+                .withPathBasedConfig(isUsePathBasedConfig())
+                .initConfig()
+                .initScanner();
+    }
+
+    public void setScan() {
+        setScan(true);
+    }
+
+    public void scanAndRead() {
         Set<Class<?>> classes = classes();
         if (classes != null) {
             Swagger swagger = reader.read(classes);
@@ -180,9 +260,9 @@ public class BeanConfig extends AbstractScanner implements Scanner, SwaggerConfi
 
             updateInfoFromConfig();
         }
-        ScannerFactory.setScanner(this);
     }
 
+    @Override
     public Set<Class<?>> classes() {
         ConfigurationBuilder config = new ConfigurationBuilder();
         Set<String> acceptablePackages = new HashSet<String>();
@@ -201,28 +281,48 @@ public class BeanConfig extends AbstractScanner implements Scanner, SwaggerConfi
             allowAllPackages = true;
         }
 
+        config.setExpandSuperTypes(getExpandSuperTypes());
+
         config.setScanners(new ResourcesScanner(), new TypeAnnotationsScanner(), new SubTypesScanner());
 
         final Reflections reflections = new Reflections(config);
-        Set<Class<?>> classes = reflections.getTypesAnnotatedWith(Api.class);
-        classes.addAll(reflections.getTypesAnnotatedWith(javax.ws.rs.Path.class));
-        classes.addAll(reflections.getTypesAnnotatedWith(SwaggerDefinition.class));
-
+        Set<Class<?>> classes = reflections.getTypesAnnotatedWith(javax.ws.rs.Path.class);
+        Set<Class<?>> typesAnnotatedWith = reflections.getTypesAnnotatedWith(SwaggerDefinition.class);
+				classes.addAll(typesAnnotatedWith);
+        
+        /*
+         * Find concrete types annotated with @Api, but with a supertype annotated with @Path.
+         * This would handle split resources where the interface has jax-rs annotations
+         * and the implementing class has Swagger annotations 
+         */
+        for (Class<?> cls : reflections.getTypesAnnotatedWith(Api.class)) {
+        	for (Class<?> intfc : TypeToken.of(cls).getTypes().interfaces().rawTypes()) {
+        		Annotation ann = intfc.getAnnotation(javax.ws.rs.Path.class);
+        		if (ann != null) {
+        			classes.add(cls);
+        			break;
+        		}
+					}
+				}
+        
         Set<Class<?>> output = new HashSet<Class<?>>();
         for (Class<?> cls : classes) {
             if (allowAllPackages) {
                 output.add(cls);
             } else {
                 for (String pkg : acceptablePackages) {
-                    if (cls.getPackage().getName().startsWith(pkg)) {
+                    // startsWith allows everything within a package
+                    // the dots ensures that package siblings are not considered
+                    if ((cls.getPackage().getName() + ".").startsWith(pkg + ".")) {
                         output.add(cls);
+			break;
                     }
                 }
             }
         }
         return output;
     }
-
+       
     private void updateInfoFromConfig() {
         info = getSwagger().getInfo();
         if (info == null) {
@@ -267,6 +367,7 @@ public class BeanConfig extends AbstractScanner implements Scanner, SwaggerConfi
         return reader.getSwagger();
     }
 
+    @Override
     public Swagger configure(Swagger swagger) {
         if (schemes != null) {
             for (String scheme : schemes) {

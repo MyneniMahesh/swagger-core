@@ -6,6 +6,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 
+@Path("/")
 public class SimpleSelfReferencingSubResource {
 
     @Path("/sub")
@@ -29,6 +30,10 @@ public class SimpleSelfReferencingSubResource {
         public SubResource2 retrieveSelf2() {
             return new SubResource2();
         }
+        @Path("/leaf")
+        public SubResource3 retrieveLeaf() {
+            return new SubResource3();
+        }
     }
 
     public static class SubResource2 {
@@ -46,6 +51,18 @@ public class SimpleSelfReferencingSubResource {
         @Path("/recurse1")
         public SubResource retrieveSelf1() {
             return new SubResource();
+        }
+        @Path("/leaf")
+        public SubResource3 retrieveLeaf() {
+            return new SubResource3();
+        }
+    }
+
+    public static class SubResource3 {
+        @GET
+        @Produces("application/json")
+        public SubResource3 retrieve() {
+            return this;
         }
     }
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 SmartBear Software
+ * Copyright 2016 SmartBear Software
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import java.lang.annotation.Target;
  * Operations with equivalent paths are grouped in a single Operation Object.
  * A combination of a HTTP method and a path creates a unique operation.
  */
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ApiOperation {
     /**
@@ -180,4 +180,10 @@ public @interface ApiOperation {
      */
 
     Extension[] extensions() default @Extension(properties = @ExtensionProperty(name = "", value = ""));
+
+    /**
+     * Ignores JsonView annotations while resolving operations and types. For backward compatibility
+     *
+     */
+    boolean ignoreJsonView() default false;
 }

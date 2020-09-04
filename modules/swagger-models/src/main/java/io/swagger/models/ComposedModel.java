@@ -38,14 +38,6 @@ public class ComposedModel extends AbstractModel {
         this.description = description;
     }
 
-    public Map<String, Property> getProperties() {
-        return null;
-    }
-
-    public void setProperties(Map<String, Property> properties) {
-
-    }
-
     public Object getExample() {
         return example;
     }
@@ -93,9 +85,11 @@ public class ComposedModel extends AbstractModel {
     @JsonIgnore
     public void setInterfaces(List<RefModel> interfaces) {
         this.interfaces = interfaces;
-        for (RefModel model : interfaces) {
-            if (!allOf.contains(model)) {
-                allOf.add(model);
+        if (interfaces != null) {
+            for (RefModel model : interfaces) {
+                if (!allOf.contains(model)) {
+                    allOf.add(model);
+                }
             }
         }
     }

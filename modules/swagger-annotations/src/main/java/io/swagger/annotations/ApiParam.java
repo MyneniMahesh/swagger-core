@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 SmartBear Software
+ * Copyright 2016 SmartBear Software
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -110,4 +110,47 @@ public @interface ApiParam {
      * @return
      */
     Example examples() default @Example(value = @ExampleProperty(mediaType = "", value = ""));
+
+    /**
+     * Adds the ability to override the detected type
+     *
+     * @since 1.5.11
+     *
+     * @return
+     */
+    String type() default "";
+
+    /**
+     * Adds the ability to provide a custom format
+     *
+     * @since 1.5.11
+     *
+     * @return
+     */
+    String format() default "";
+
+    /**
+     * Adds the ability to set a format as empty
+     *
+     * @since 1.5.11
+     *
+     * @return
+     */
+    boolean allowEmptyValue() default false;
+
+    /**
+     * adds ability to be designated as read only.
+     *
+     * @since 1.5.11
+     *
+     */
+    boolean readOnly() default false;
+
+    /**
+     * adds ability to override collectionFormat with `array` types
+     *
+     * @since 1.5.11
+     *
+     */
+    String collectionFormat() default "";
 }

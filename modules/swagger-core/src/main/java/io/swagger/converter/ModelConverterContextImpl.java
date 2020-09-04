@@ -1,5 +1,7 @@
 package io.swagger.converter;
 
+import com.fasterxml.jackson.annotation.JsonView;
+import io.swagger.models.ComposedModel;
 import io.swagger.models.Model;
 import io.swagger.models.ModelImpl;
 import io.swagger.models.properties.Property;
@@ -26,6 +28,8 @@ public class ModelConverterContextImpl implements ModelConverterContext {
     private final Map<String, Model> modelByName;
     private final HashMap<Type, Model> modelByType;
     private final Set<Type> processedTypes;
+
+    private JsonView jsonView; // for filtering the response only
 
     public ModelConverterContextImpl(List<ModelConverter> converters) {
         this.converters = converters;
@@ -100,8 +104,13 @@ public class ModelConverterContextImpl implements ModelConverterContext {
         }
         if (resolved != null) {
             modelByType.put(type, resolved);
-            if (resolved instanceof ModelImpl) {
-                ModelImpl impl = (ModelImpl) resolved;
+
+            Model resolvedImpl = resolved;
+            if (resolvedImpl instanceof ComposedModel) {
+                resolvedImpl = ((ComposedModel) resolved).getChild();
+            }
+            if (resolvedImpl instanceof ModelImpl) {
+                ModelImpl impl = (ModelImpl) resolvedImpl;
                 if (impl.getName() != null) {
                     modelByName.put(impl.getName(), resolved);
                 }
@@ -109,5 +118,13 @@ public class ModelConverterContextImpl implements ModelConverterContext {
         }
 
         return resolved;
+    }
+
+    public JsonView getJsonView() {
+        return jsonView;
+    }
+
+    public void setJsonView(JsonView jsonView) {
+        this.jsonView = jsonView;
     }
 }

@@ -9,11 +9,13 @@ import com.fasterxml.jackson.databind.PropertyName;
 import com.fasterxml.jackson.databind.introspect.Annotated;
 import com.fasterxml.jackson.databind.jsontype.NamedType;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import io.swagger.converter.ModelConverter;
 import io.swagger.converter.ModelConverterContext;
 import io.swagger.models.Model;
 import io.swagger.models.properties.Property;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.xml.bind.annotation.XmlElement;
 import java.lang.annotation.Annotation;
@@ -27,7 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public abstract class AbstractModelConverter implements ModelConverter {
     protected final ObjectMapper _mapper;
     protected final AnnotationIntrospector _intr;
-    protected final TypeNameResolver _typeNameResolver = TypeNameResolver.std;
+    protected final TypeNameResolver _typeNameResolver;
     /**
      * Minor optimization: no need to keep on resolving same types over and over
      * again.
@@ -35,6 +37,10 @@ public abstract class AbstractModelConverter implements ModelConverter {
     protected Map<JavaType, String> _resolvedTypeNames = new ConcurrentHashMap<JavaType, String>();
 
     protected AbstractModelConverter(ObjectMapper mapper) {
+        this(mapper, TypeNameResolver.std);
+    }
+
+    protected AbstractModelConverter(ObjectMapper mapper, TypeNameResolver typeNameResolver) {
         mapper.registerModule(
                 new SimpleModule("swagger", Version.unknownVersion()) {
                     @Override
@@ -43,6 +49,7 @@ public abstract class AbstractModelConverter implements ModelConverter {
                     }
                 });
         _mapper = mapper;
+        _typeNameResolver = typeNameResolver;
         _intr = mapper.getSerializationConfig().getAnnotationIntrospector();
 
     }
@@ -97,6 +104,16 @@ public abstract class AbstractModelConverter implements ModelConverter {
         return name;
     }
 
+    /**
+     * whether to resolve schema name by first using AnnotationInspector registered implementations
+     * defaults to false, override returning `true` to obtain pre-1.5.24 behaviour
+     *
+     * @return false
+     * @since 1.5.24
+     */
+    protected boolean prioritizeAnnotationInspectorSchemaName() {
+        return false;
+    }
     protected String _findTypeName(JavaType type, BeanDescription beanDesc) {
         // First, handle container types; they require recursion
         if (type.isArrayType()) {
@@ -117,6 +134,12 @@ public abstract class AbstractModelConverter implements ModelConverter {
             beanDesc = _mapper.getSerializationConfig().introspectClassAnnotations(type);
         }
 
+        if (!prioritizeAnnotationInspectorSchemaName()) {
+            final ApiModel model = type.getRawClass().getAnnotation(ApiModel.class);
+            if (model != null && StringUtils.isNotBlank(model.value())) {
+                return _typeNameResolver.nameForType(type);
+            }
+        }
         PropertyName rootName = _intr.findRootName(beanDesc.getClassInfo());
         if (rootName != null && rootName.hasSimpleName()) {
             return rootName.getSimpleName();
@@ -157,6 +180,19 @@ public abstract class AbstractModelConverter implements ModelConverter {
         ApiModelProperty prop = a.getAnnotation(ApiModelProperty.class);
         if (prop != null) {
             return prop.readOnly();
+        }
+        return null;
+    }
+
+    protected Boolean _findReadOnlyFromAccessMode(Annotated a) {
+        ApiModelProperty prop = a.getAnnotation(ApiModelProperty.class);
+        if (prop != null) {
+            if (prop.accessMode().equals(ApiModelProperty.AccessMode.AUTO)) {
+                return null;
+            } else if(prop.accessMode().equals(ApiModelProperty.AccessMode.READ_ONLY)) {
+                return true;
+            }
+            return false;
         }
         return null;
     }

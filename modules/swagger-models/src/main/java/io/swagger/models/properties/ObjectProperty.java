@@ -1,6 +1,12 @@
 package io.swagger.models.properties;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import io.swagger.models.Xml;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -80,8 +86,44 @@ public class ObjectProperty extends AbstractProperty implements Property {
         return this;
     }
 
+    public ObjectProperty readOnly() {
+        this.setReadOnly(Boolean.TRUE);
+        return this;
+    }
+
     public Map<String, Property> getProperties(){
       return this.properties;
+    }
+
+    @JsonGetter("required")
+    public List<String> getRequiredProperties() {
+        List<String> output = new ArrayList<String>();
+        if (properties != null) {
+            for (String key : properties.keySet()) {
+                Property prop = properties.get(key);
+                if (prop != null && prop.getRequired()) {
+                    output.add(key);
+                }
+            }
+        }
+        Collections.sort(output);
+        if (output.size() > 0) {
+            return output;
+        } else {
+            return null;
+        }
+    }
+
+    @JsonSetter("required")
+    public void setRequiredProperties(List<String> required) {
+        if (properties != null) {
+            for (String s : required) {
+                Property p = properties.get(s);
+                if (p != null) {
+                    p.setRequired(true);
+                }
+            }
+        }
     }
 
     public void setProperties(Map<String, Property> properties){
@@ -93,8 +135,33 @@ public class ObjectProperty extends AbstractProperty implements Property {
         return this;
     }
 
-    public ObjectProperty example(String example) {
+    public ObjectProperty example(Object example) {
         this.setExample(example);
         return this;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (!(o instanceof ObjectProperty)) {
+            return false;
+        }
+
+        ObjectProperty that = (ObjectProperty) o;
+
+        if (properties != null ? !properties.equals(that.properties) : that.properties != null) {
+            return false;
+        }
+        return super.equals(o);
+    }
+
+    @Override
+    public int hashCode() {
+        int result =  super.hashCode();
+        result = 31 * result + (properties != null ? properties.hashCode() : 0);
+        return result;
     }
 }

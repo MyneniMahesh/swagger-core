@@ -1,6 +1,8 @@
 package io.swagger.models.properties;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import io.swagger.models.Xml;
 
 import java.util.Map;
@@ -22,6 +24,10 @@ public interface Property {
 
     void setDescription(String title);
 
+    Boolean getAllowEmptyValue();
+
+    void setAllowEmptyValue(Boolean value);
+
     @JsonIgnore
     String getName();
 
@@ -32,8 +38,14 @@ public interface Property {
 
     void setRequired(boolean required);
 
-    String getExample();
+    @JsonGetter
+    Object getExample();
 
+    @JsonSetter
+    void setExample(Object example);
+
+    @Deprecated
+    @JsonIgnore
     void setExample(String example);
 
     Boolean getReadOnly();
@@ -57,4 +69,11 @@ public interface Property {
     void setAccess(String access);
 
     Map<String, Object> getVendorExtensions();
+
+    /**
+     * creates a new instance and renames the property to the given name.
+     *
+     * @return new shallow copy of the property
+     */
+    Property rename(String newName);
 }

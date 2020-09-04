@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 SmartBear Software
+ * Copyright 2016 SmartBear Software
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import java.lang.annotation.Target;
 
 /**
  * Annotation that configures definition level metadata. Still missing are the following:
- * - Security Definitions
  * - Security Requirements
  * - Parameters
  * - Responses
@@ -54,7 +53,7 @@ public @interface SwaggerDefinition {
      * Global level consumes for this swagger definition.
      * <p>
      * These will be added to all api definitions that don't have local overrides - see
-     * https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#swagger-object
+     * https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#swagger-object
      *
      * @return a list of global level consumes.
      */
@@ -64,7 +63,7 @@ public @interface SwaggerDefinition {
      * Global level produces for this swagger definition.
      * <p>
      * These will be added to all api definitions that don't have local overrides - see
-     * https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#swagger-object
+     * https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#swagger-object
      *
      * @return a list of global level consumes
      */
@@ -82,18 +81,24 @@ public @interface SwaggerDefinition {
     /**
      * Global tags that can be used to tag individual Apis and ApiOperations.
      * <p>
-     * See https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#tagObject
+     * See https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#tagObject
      *
      * @return list of globally defined tags
      */
     Tag[] tags() default @Tag(name = "");
 
-    ;
+
+    /**
+     * Defintions for security schemes
+     *
+     * @return defintions for security schemes
+     */
+    SecurityDefinition securityDefinition() default @SecurityDefinition();
 
     /**
      * General metadata for this Swagger definition.
      * <p>
-     * See https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#infoObject
+     * See https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#infoObject
      *
      * @return general metadata for this Swagger definition
      */
